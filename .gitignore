@@ -9,3 +9,12 @@ node_modules/
 .idea/
 dist/
 build/
+storage/
+checkpoints/
+*.db
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.coverage
+htmlcov/
