@@ -1,0 +1,362 @@
+{% extends "base.html" %}
+
+{% block title %}Label Images - Admin{% endblock %}
+
+{% block extra_css %}
+<style>
+    .label-container {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+        max-width: 1200px;
+    }
+
+    .image-panel {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .image-display {
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        margin-bottom: 1rem;
+    }
+
+    .image-display img {
+        width: 100%;
+        height: auto;
+        display: block;
+    }
+
+    .season-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 0.75rem;
+        margin: 1.5rem 0;
+    }
+
+    .season-btn {
+        padding: 0.75rem;
+        background: #f0f0f0;
+        border: 2px solid transparent;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 0.85rem;
+        font-weight: 500;
+        transition: all 0.2s;
+    }
+
+    .season-btn:hover {
+        background: #e0e0e0;
+    }
+
+    .season-btn.selected {
+        border-color: #667eea;
+        background: #e8edff;
+        color: #667eea;
+    }
+
+    .season-group {
+        margin-bottom: 1rem;
+    }
+
+    .season-group-label {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #666;
+        margin-bottom: 0.5rem;
+        text-transform: uppercase;
+    }
+
+    .control-group {
+        margin: 1rem 0;
+    }
+
+    .control-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 500;
+        color: #333;
+    }
+
+    .control-group input[type="range"] {
+        width: 100%;
+        margin: 0.5rem 0 1rem 0;
+    }
+
+    .control-group textarea {
+        resize: vertical;
+        min-height: 80px;
+    }
+
+    .action-buttons {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 0.75rem;
+        margin-top: 1.5rem;
+    }
+
+    .action-buttons button {
+        padding: 0.75rem;
+    }
+
+    .btn-secondary {
+        background: #999;
+    }
+
+    .btn-secondary:hover {
+        background: #777;
+    }
+
+    .btn-danger {
+        background: #d32f2f;
+    }
+
+    .btn-danger:hover {
+        background: #b71c1c;
+    }
+
+    .stats {
+        padding: 1rem;
+        background: #f5f5f5;
+        border-radius: 6px;
+        margin-top: 1rem;
+        font-size: 0.9rem;
+    }
+
+    .stats-item {
+        display: flex;
+        justify-content: space-between;
+        margin: 0.5rem 0;
+    }
+
+    .no-images {
+        text-align: center;
+        padding: 2rem;
+        color: #999;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2>Label Images</h2>
+    <p>Classify unlabeled images into their armochromia sub-seasons.</p>
+
+    <div id="content">
+        <div class="label-container">
+            <!-- Left panel: Image display -->
+            <div class="image-panel">
+                <div class="image-display" id="imageDisplay">
+                    <img id="currentImage" src="" alt="Current image to label">
+                </div>
+                <div class="stats" id="stats">
+                    <div class="stats-item">
+                        <span>Remaining unlabeled:</span>
+                        <strong id="remaining">0</strong>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right panel: Labeling controls -->
+            <div>
+                <h3 id="imageFilename">Image Filename</h3>
+
+                <div class="control-group">
+                    <label>Select Season:</label>
+
+                    <!-- Winter -->
+                    <div class="season-group">
+                        <div class="season-group-label">❄️ Winter</div>
+                        <div class="season-grid">
+                            <button class="season-btn" data-season="Cool Winter">Cool</button>
+                            <button class="season-btn" data-season="Deep Winter">Deep</button>
+                            <button class="season-btn" data-season="Bright Winter">Bright</button>
+                            <button class="season-btn" data-season="True Winter">True</button>
+                        </div>
+                    </div>
+
+                    <!-- Spring -->
+                    <div class="season-group">
+                        <div class="season-group-label">🌸 Spring</div>
+                        <div class="season-grid">
+                            <button class="season-btn" data-season="Bright Spring">Bright</button>
+                            <button class="season-btn" data-season="Light Spring">Light</button>
+                            <button class="season-btn" data-season="Warm Spring">Warm</button>
+                            <button class="season-btn" data-season="True Spring">True</button>
+                        </div>
+                    </div>
+
+                    <!-- Summer -->
+                    <div class="season-group">
+                        <div class="season-group-label">☀️ Summer</div>
+                        <div class="season-grid">
+                            <button class="season-btn" data-season="Soft Summer">Soft</button>
+                            <button class="season-btn" data-season="Light Summer">Light</button>
+                            <button class="season-btn" data-season="Cool Summer">Cool</button>
+                            <button class="season-btn" data-season="True Summer">True</button>
+                        </div>
+                    </div>
+
+                    <!-- Autumn -->
+                    <div class="season-group">
+                        <div class="season-group-label">🍂 Autumn</div>
+                        <div class="season-grid">
+                            <button class="season-btn" data-season="Warm Autumn">Warm</button>
+                            <button class="season-btn" data-season="Deep Autumn">Deep</button>
+                            <button class="season-btn" data-season="Soft Autumn">Soft</button>
+                            <button class="season-btn" data-season="True Autumn">True</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label for="confidence">Confidence:</label>
+                    <input type="range" id="confidence" min="0.5" max="1.0" step="0.05" value="0.9">
+                    <span id="confidenceValue">0.9</span>
+                </div>
+
+                <div class="control-group">
+                    <label for="notes">Notes:</label>
+                    <textarea id="notes" placeholder="Add any notes about this classification..."></textarea>
+                </div>
+
+                <div class="control-group">
+                    <label>
+                        <input type="checkbox" id="verified">
+                        Mark as verified
+                    </label>
+                </div>
+
+                <div class="action-buttons">
+                    <button onclick="confirmLabel()" id="confirmBtn">Confirm</button>
+                    <button class="btn-secondary" onclick="skipImage()">Skip</button>
+                    <button class="btn-danger" onclick="deleteImage()">Delete</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="noImages" style="display: none;" class="no-images">
+        <h3>✨ All images labeled!</h3>
+        <p>There are no more unlabeled images to classify.</p>
+        <button onclick="location.reload()">Refresh</button>
+    </div>
+</div>
+
+<script>
+    let currentImage = null;
+    let selectedSeason = null;
+
+    // Event listeners for season buttons
+    document.querySelectorAll('.season-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.season-btn').forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
+            selectedSeason = btn.dataset.season;
+        });
+    });
+
+    // Confidence slider
+    document.getElementById('confidence').addEventListener('input', (e) => {
+        document.getElementById('confidenceValue').textContent = e.target.value;
+    });
+
+    async function loadNextImage() {
+        try {
+            const response = await fetch('/api/admin/images?unlabeled=true&page=1&per_page=1');
+            const data = await response.json();
+
+            if (data.length === 0) {
+                document.getElementById('content').style.display = 'none';
+                document.getElementById('noImages').style.display = 'block';
+                return;
+            }
+
+            currentImage = data[0];
+            document.getElementById('currentImage').src = `/media/${currentImage.storage_path}`;
+            document.getElementById('imageFilename').textContent = currentImage.filename;
+
+            // Reset form
+            selectedSeason = null;
+            document.querySelectorAll('.season-btn').forEach(b => b.classList.remove('selected'));
+            document.getElementById('confidence').value = '0.9';
+            document.getElementById('confidenceValue').textContent = '0.9';
+            document.getElementById('notes').value = '';
+            document.getElementById('verified').checked = false;
+
+            updateStats();
+        } catch (error) {
+            console.error('Error loading image:', error);
+        }
+    }
+
+    async function updateStats() {
+        try {
+            const response = await fetch('/api/admin/stats');
+            const stats = await response.json();
+            document.getElementById('remaining').textContent = stats.unlabeled;
+        } catch (error) {
+            console.error('Error updating stats:', error);
+        }
+    }
+
+    async function confirmLabel() {
+        if (!currentImage || !selectedSeason) {
+            alert('Please select a season');
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/admin/images/${currentImage.uuid}/label`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    season: selectedSeason,
+                    confidence: parseFloat(document.getElementById('confidence').value),
+                    label_source: 'human',
+                    notes: document.getElementById('notes').value || null,
+                    is_verified: document.getElementById('verified').checked,
+                }),
+            });
+
+            if (!response.ok) throw new Error('Failed to save label');
+
+            loadNextImage();
+        } catch (error) {
+            alert('Error: ' + error.message);
+        }
+    }
+
+    async function skipImage() {
+        loadNextImage();
+    }
+
+    async function deleteImage() {
+        if (!currentImage || !confirm('Delete this image?')) return;
+
+        try {
+            const response = await fetch(`/api/admin/images/${currentImage.uuid}`, {
+                method: 'DELETE',
+            });
+
+            if (!response.ok) throw new Error('Failed to delete image');
+
+            loadNextImage();
+        } catch (error) {
+            alert('Error: ' + error.message);
+        }
+    }
+
+    // Load initial image
+    loadNextImage();
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') confirmLabel();
+        if (e.key === 'n' || e.key === 'N') skipImage();
+        if (e.key === 'd' || e.key === 'D') deleteImage();
+    });
+</script>
+{% endblock %}

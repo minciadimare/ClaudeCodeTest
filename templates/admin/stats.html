@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+
+{% block title %}Statistics - Admin{% endblock %}
+
+{% block extra_css %}
+<style>
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+        margin: 2rem 0;
+    }
+
+    .stat-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 1.5rem;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .stat-card h3 {
+        opacity: 0.9;
+        margin-bottom: 0.5rem;
+        font-size: 0.9rem;
+    }
+
+    .stat-card .value {
+        font-size: 2.5rem;
+        font-weight: bold;
+    }
+
+    .season-stats {
+        margin-top: 2rem;
+        padding: 1.5rem;
+        background: #f9f9f9;
+        border-radius: 8px;
+    }
+
+    .season-row {
+        display: grid;
+        grid-template-columns: 1fr 3fr;
+        gap: 1rem;
+        margin: 1rem 0;
+        align-items: center;
+    }
+
+    .season-row .season-name {
+        font-weight: 500;
+    }
+
+    .season-bar {
+        background: #e0e0e0;
+        border-radius: 4px;
+        overflow: hidden;
+        height: 30px;
+        position: relative;
+    }
+
+    .season-bar .progress {
+        background: linear-gradient(90deg, #667eea, #764ba2);
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        padding-right: 0.5rem;
+        color: white;
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+
+    .loading {
+        text-align: center;
+        padding: 2rem;
+        color: #999;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 900px;">
+    <h2>Dataset Statistics</h2>
+    <p>Overview of labeled and unlabeled images in the database.</p>
+
+    <div id="loading" class="loading">
+        <p>Loading statistics...</p>
+    </div>
+
+    <div id="stats" style="display: none;">
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3>Total Images</h3>
+                <div class="value" id="totalImages">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>Labeled</h3>
+                <div class="value" id="labeled">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>Unlabeled</h3>
+                <div class="value" id="unlabeled">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>Verified</h3>
+                <div class="value" id="verified">0</div>
+            </div>
+        </div>
+
+        <div class="season-stats">
+            <h3>Per-Season Breakdown</h3>
+            <div id="seasonBreakdown">
+                <p style="text-align: center; color: #999;">No data available yet</p>
+            </div>
+        </div>
+
+        <button onclick="location.href = '/admin/label'" style="margin-top: 2rem;">Start Labeling</button>
+    </div>
+</div>
+
+<script>
+    async function loadStats() {
+        try {
+            const response = await fetch('/api/admin/stats');
+            const data = await response.json();
+
+            document.getElementById('totalImages').textContent = data.total_images;
+            document.getElementById('labeled').textContent = data.labeled;
+            document.getElementById('unlabeled').textContent = data.unlabeled;
+            document.getElementById('verified').textContent = data.verified;
+
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('stats').style.display = 'block';
+
+            // TODO: Load per-season breakdown from /api/dataset/stats when implemented
+        } catch (error) {
+            console.error('Error loading stats:', error);
+            document.getElementById('loading').innerHTML = '<p style="color: red;">Error loading statistics</p>';
+        }
+    }
+
+    loadStats();
+</script>
+{% endblock %}

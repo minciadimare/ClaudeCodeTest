@@ -1,0 +1,194 @@
+{% extends "base.html" %}
+
+{% block title %}Upload Photo - Armochromia Classifier{% endblock %}
+
+{% block extra_css %}
+<style>
+    .upload-zone {
+        border: 3px dashed #667eea;
+        border-radius: 8px;
+        padding: 3rem 2rem;
+        text-align: center;
+        transition: all 0.3s;
+        cursor: pointer;
+        background: #f5f7ff;
+    }
+
+    .upload-zone:hover {
+        border-color: #764ba2;
+        background: #f0f4ff;
+    }
+
+    .upload-zone.dragover {
+        border-color: #764ba2;
+        background: #e8edff;
+    }
+
+    .upload-zone p {
+        color: #666;
+        margin: 1rem 0;
+    }
+
+    .spinner {
+        display: none;
+        text-align: center;
+        margin: 2rem 0;
+    }
+
+    .spinner.show {
+        display: block;
+    }
+
+    .spinner svg {
+        width: 50px;
+        height: 50px;
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    #result {
+        display: none;
+    }
+
+    #result.show {
+        display: block;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2>Upload Your Photo</h2>
+    <p>Upload a clear photo of your face to discover your personal color season.</p>
+
+    <div id="uploadForm">
+        <div class="upload-zone" id="uploadZone">
+            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="17 8 12 3 7 8"></polyline>
+                <line x1="12" y1="3" x2="12" y2="15"></line>
+            </svg>
+            <p><strong>Drag and drop your image here</strong></p>
+            <p>or click to select a file</p>
+            <input type="file" id="fileInput" accept="image/*" style="display: none;">
+        </div>
+
+        <div class="spinner" id="spinner">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 50">
+                <circle cx="25" cy="25" r="20" fill="none" stroke="#667eea" stroke-width="4"></circle>
+                <circle cx="25" cy="25" r="20" fill="none" stroke="#f3f3f3" stroke-width="4" stroke-dasharray="31.4 31.4" opacity="0.2"></circle>
+            </svg>
+            <p>Analyzing your colors...</p>
+        </div>
+    </div>
+
+    <div id="result"></div>
+</div>
+
+<script>
+    const uploadZone = document.getElementById('uploadZone');
+    const fileInput = document.getElementById('fileInput');
+    const spinner = document.getElementById('spinner');
+    const resultDiv = document.getElementById('result');
+    const uploadForm = document.getElementById('uploadForm');
+
+    uploadZone.addEventListener('click', () => fileInput.click());
+
+    uploadZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadZone.classList.add('dragover');
+    });
+
+    uploadZone.addEventListener('dragleave', () => {
+        uploadZone.classList.remove('dragover');
+    });
+
+    uploadZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadZone.classList.remove('dragover');
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+            fileInput.files = files;
+            handleUpload(files[0]);
+        }
+    });
+
+    fileInput.addEventListener('change', (e) => {
+        if (e.target.files.length > 0) {
+            handleUpload(e.target.files[0]);
+        }
+    });
+
+    async function handleUpload(file) {
+        uploadForm.style.display = 'none';
+        spinner.classList.add('show');
+        resultDiv.classList.remove('show');
+        resultDiv.innerHTML = '';
+
+        const formData = new FormData();
+        formData.append('file', file);
+
+        try {
+            const response = await fetch('/api/classify', {
+                method: 'POST',
+                body: formData,
+            });
+
+            if (!response.ok) {
+                throw new Error(`Upload failed: ${response.statusText}`);
+            }
+
+            const data = await response.json();
+            displayResult(data);
+        } catch (error) {
+            showError(error.message);
+        } finally {
+            spinner.classList.remove('show');
+        }
+    }
+
+    function displayResult(data) {
+        const seasonColors = {
+            'Cool Winter': '#4a90e2',
+            'Deep Winter': '#1a237e',
+            'Bright Winter': '#ffffff',
+            'True Winter': '#263238',
+            'Bright Spring': '#ffeb3b',
+            'Light Spring': '#fff9c4',
+            'Warm Spring': '#ff6f00',
+            'True Spring': '#ff9800',
+            'Warm Autumn': '#8b4513',
+            'Deep Autumn': '#6b4423',
+            'Soft Autumn': '#d2b48c',
+            'True Autumn': '#cc6600',
+            'Soft Summer': '#b0c4de',
+            'Light Summer': '#dda0dd',
+            'Cool Summer': '#4169e1',
+            'True Summer': '#800080',
+        };
+
+        const html = `
+            <div class="success">
+                <h3>Your Color Season: <strong>${data.season}</strong></h3>
+                <p>Confidence: ${(data.confidence * 100).toFixed(0)}%</p>
+                <p style="font-size: 0.9rem; opacity: 0.8;">Method: ${data.inference_method}</p>
+            </div>
+            <button onclick="location.href = '/'">Upload Another Photo</button>
+        `;
+
+        resultDiv.innerHTML = html;
+        resultDiv.classList.add('show');
+    }
+
+    function showError(message) {
+        uploadForm.style.display = 'block';
+        const html = `<div class="error"><strong>Error:</strong> ${message}</div>`;
+        resultDiv.innerHTML = html;
+        resultDiv.classList.add('show');
+    }
+</script>
+{% endblock %}
